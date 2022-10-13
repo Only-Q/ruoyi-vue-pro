@@ -1,9 +1,14 @@
 package cn.iocoder.yudao.module.system.service.biologysample;
 
+import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
+
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import cn.iocoder.yudao.module.system.controller.admin.biologysample.vo.*;
 import cn.iocoder.yudao.module.system.dal.dataobject.biologysample.BiologySampleDO;
@@ -77,6 +82,63 @@ public class BiologySampleServiceImpl implements BiologySampleService {
     @Override
     public List<BiologySampleDO> getBiologySampleList(BiologySampleExportReqVO exportReqVO) {
         return biologySampleMapper.selectList(exportReqVO);
+    }
+
+    @Override
+    public List<BiologySampleDO> getSampleInfo(String sampleNo) {
+        return biologySampleMapper.getSampleInfo(sampleNo);
+    }
+
+    @Override
+    @Transactional
+    public CommonResult<String> importBaseInfo(List<BaseInfoImportExcelVo> list) {
+        list.stream().forEach(f -> {
+            BiologySampleExportReqVO en = new BiologySampleExportReqVO();
+            en.setCheckupNo(f.getCheckupNo());
+            List<BiologySampleDO> biologySampleList = getBiologySampleList(en);
+            if(biologySampleList.size() == 0){
+                // 插入
+                BiologySampleCreateReqVO createReqVO = new BiologySampleCreateReqVO();
+                createReqVO.setCheckupNo(f.getCheckupNo());
+                createReqVO.setName(f.getName());
+                createReqVO.setSex(f.getSex()+"");
+                createReqVO.setXNo(f.getXNo());
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd");
+                try {
+                    createReqVO.setCheckupTime(sdf.parse(f.getCheckupTime()));
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                BiologySampleDO biologySample = BiologySampleConvert.INSTANCE.convert(createReqVO);
+                biologySampleMapper.insert(biologySample);
+            }
+        });
+        return CommonResult.success("基础信息导入成功");
+    }
+
+    @Override
+    @Transactional
+    public CommonResult<String> importSample(List<SampleImportExcelVo> list) {
+        list.stream().forEach(f -> {
+            BiologySampleExportReqVO en = new BiologySampleExportReqVO();
+            en.setCheckupNo(f.getCheckupNo());
+            List<BiologySampleDO> biologySampleList = getBiologySampleList(en);
+            if(biologySampleList.size()>0){
+                BiologySampleDO biologySampleDO = biologySampleList.get(0);
+                biologySampleDO.setBloodNo(f.getBloodNo());
+                biologySampleDO.setBiochemistryNo(f.getBiochemistryNo());
+                biologySampleDO.setUrineNo(f.getUrineNo());
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd");
+                try {
+                    biologySampleDO.setRegisterTime(sdf.parse(f.getRegisterTime()));
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                // 更新
+                biologySampleMapper.updateById(biologySampleDO);
+            }
+        });
+        return CommonResult.success("样本号导入成功");
     }
 
 }

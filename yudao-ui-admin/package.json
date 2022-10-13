@@ -1,7 +1,7 @@
 {
   "name": "yudao-ui-admin",
   "version": "1.6.4-snapshot",
-  "description": "生物样品登记系统",
+  "description": "尘肺队列生物样品登记系统",
   "author": "芋道",
   "license": "MIT",
   "scripts": {

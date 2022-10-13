@@ -2,9 +2,12 @@ package cn.iocoder.yudao.module.system.service.biologysample;
 
 import java.util.*;
 import javax.validation.*;
+
+import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.system.controller.admin.biologysample.vo.*;
 import cn.iocoder.yudao.module.system.dal.dataobject.biologysample.BiologySampleDO;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 生物样品入库登记 Service 接口
@@ -66,5 +69,11 @@ public interface BiologySampleService {
      * @return 生物样品入库登记列表
      */
     List<BiologySampleDO> getBiologySampleList(BiologySampleExportReqVO exportReqVO);
+
+    List<BiologySampleDO> getSampleInfo(String sampleNo);
+
+    CommonResult<String> importBaseInfo(List<BaseInfoImportExcelVo> list);
+
+    CommonResult<String> importSample(List<SampleImportExcelVo> list);
 
 }

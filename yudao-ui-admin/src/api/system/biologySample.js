@@ -34,6 +34,14 @@ export function getBiologySample(id) {
   })
 }
 
+// 根据样本号获取生物样本信息
+export function getSampleInfo(sampleNo) {
+  return request({
+    url: '/system/biology-sample/getSampleInfo?sampleNo=' + sampleNo,
+    method: 'get'
+  })
+}
+
 // 获得生物样品入库登记分页
 export function getBiologySamplePage(query) {
   return request({

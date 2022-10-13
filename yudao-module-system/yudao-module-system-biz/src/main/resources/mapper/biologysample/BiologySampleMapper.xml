@@ -8,5 +8,14 @@
         代码生成器暂时只生成 Mapper XML 文件本身，更多推荐 MybatisX 快速开发插件来生成查询。
         文档可见：https://www.iocoder.cn/MyBatis/x-plugins/
      -->
+    <resultMap id="BaseResultMap" type="cn.iocoder.yudao.module.system.dal.dataobject.biologysample.BiologySampleDO" >
+        <id column="id" property="id" jdbcType="BIGINT" />
+        <result column="blood_no" property="bloodNo" jdbcType="VARCHAR" />
+        <result column="biochemistry_no" property="biochemistryNo" jdbcType="VARCHAR" />
+        <result column="urine_no" property="urineNo" jdbcType="VARCHAR" />
+    </resultMap>
+    <select id="getSampleInfo" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select * from system_biology_sample where blood_no = #{sampleNo} or biochemistry_no = #{sampleNo} or urine_no = #{sampleNo}
+    </select>
 
 </mapper>

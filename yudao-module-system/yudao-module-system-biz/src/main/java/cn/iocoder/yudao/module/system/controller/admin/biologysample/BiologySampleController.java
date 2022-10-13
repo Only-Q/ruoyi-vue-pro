@@ -1,5 +1,8 @@
 package cn.iocoder.yudao.module.system.controller.admin.biologysample;
 
+import cn.iocoder.yudao.module.system.controller.admin.user.vo.user.UserImportExcelVO;
+import cn.iocoder.yudao.module.system.controller.admin.user.vo.user.UserImportRespVO;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
@@ -25,6 +28,7 @@ import cn.iocoder.yudao.module.system.controller.admin.biologysample.vo.*;
 import cn.iocoder.yudao.module.system.dal.dataobject.biologysample.BiologySampleDO;
 import cn.iocoder.yudao.module.system.convert.biologysample.BiologySampleConvert;
 import cn.iocoder.yudao.module.system.service.biologysample.BiologySampleService;
+import org.springframework.web.multipart.MultipartFile;
 
 @Api(tags = "管理后台 - 生物样品入库登记")
 @RestController
@@ -95,6 +99,45 @@ public class BiologySampleController {
         // 导出 Excel
         List<BiologySampleExcelVO> datas = BiologySampleConvert.INSTANCE.convertList02(list);
         ExcelUtils.write(response, "生物样品入库登记.xls", "数据", BiologySampleExcelVO.class, datas);
+    }
+
+    @GetMapping("/getSampleInfo")
+    public CommonResult<Map<String,String>> getSampleInfo(@RequestParam("sampleNo") String sampleNo) {
+        Map<String,String> returnMap = new HashMap<>();
+        List<BiologySampleDO> sampleInfoList = biologySampleService.getSampleInfo(sampleNo);
+        if(sampleInfoList.size() == 1){
+            BiologySampleDO en = sampleInfoList.get(0);
+            String sampleType = "";
+            if(sampleNo.equals(en.getBloodNo())){
+                sampleType = "bloodNo";
+            }else if(sampleNo.equals(en.getBiochemistryNo())){
+                sampleType = "biochemistryNo";
+            }else if(sampleNo.equals(en.getUrineNo())){
+                sampleType = "urineNo";
+            }
+            returnMap.put("code","0000");
+            returnMap.put("id",en.getId()+"");
+            returnMap.put("sampleType",sampleType);
+        }else {
+            returnMap.put("code","9999");
+            returnMap.put("id","");
+            returnMap.put("sampleType","");
+        }
+        return success(returnMap);
+    }
+
+    @PostMapping("/import")
+    public CommonResult<String> importExcel(@RequestParam("file") MultipartFile file,
+                                                      @RequestParam(value = "type", required = true) String type) throws Exception {
+        if("1".equals(type)){
+            List<BaseInfoImportExcelVo> list = ExcelUtils.read(file, BaseInfoImportExcelVo.class);
+            return biologySampleService.importBaseInfo(list);
+        }else if("2".equals(type)){
+            List<SampleImportExcelVo> list = ExcelUtils.read(file, SampleImportExcelVo.class);
+            return biologySampleService.importSample(list);
+        }else {
+            return null;
+        }
     }
 
 }

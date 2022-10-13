@@ -35,7 +35,7 @@ export default {
   },
   data() {
     return {
-      title: '生物样品登记系统',
+      title: '尘肺队列生物样品登记系统',
       logo: logoImg
     }
   }
