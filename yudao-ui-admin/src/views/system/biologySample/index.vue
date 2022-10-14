@@ -148,7 +148,7 @@
           <el-input v-model="form.xNo" placeholder="请输入X线号" :disabled="modifyFlag"/>
         </el-form-item>
         <el-form-item label="血常规样本号" prop="bloodNo">
-          <el-input v-model="form.bloodNo" placeholder="请输入血常规样本号" :disabled="modifyFlag"/>
+          <el-input v-model="form.bloodNo" placeholder="请输入血常规样本号" :disabled="modifyFlag" />
         </el-form-item>
         <el-form-item label="生化样本号" prop="biochemistryNo">
           <el-input v-model="form.biochemistryNo" placeholder="请输入生化样本号" :disabled="modifyFlag"/>
@@ -157,16 +157,16 @@
           <el-input v-model="form.urineNo" placeholder="请输入尿常规样本号" :disabled="modifyFlag"/>
         </el-form-item>
         <el-form-item label="血清样本位置" prop="serumLocation" class="serum">
-          <el-input v-model="form.serumLocation" placeholder="请输入血清样本位置" :disabled="sampleType == 'bloodNo' || sampleType == 'urineNo'"/>
-        </el-form-item>
-        <el-form-item label="血浆样本位置" prop="plasmaLocation" class="plasma">
-          <el-input v-model="form.plasmaLocation" placeholder="请输入血浆样本位置" :disabled="sampleType == 'biochemistryNo' || sampleType == 'urineNo'"/>
-        </el-form-item>
-        <el-form-item label="血细胞样本位置" prop="bloodCellsLocation" class="bloodcells">
-          <el-input v-model="form.bloodCellsLocation" placeholder="请输入血细胞样本位置" :disabled="sampleType == 'biochemistryNo' || sampleType == 'urineNo'"/>
+          <el-input v-model="form.serumLocation" maxlength="8" show-word-limit placeholder="请输入血清样本位置" :disabled="sampleType == 'bloodNo' || sampleType == 'urineNo'"/>
         </el-form-item>
         <el-form-item label="尿样样本位置" prop="urineLocation" class="urine">
-          <el-input v-model="form.urineLocation" placeholder="请输入尿样样本位置" :disabled="sampleType == 'bloodNo' || sampleType == 'biochemistryNo'"/>
+          <el-input v-model="form.urineLocation" maxlength="8" show-word-limit placeholder="请输入尿样样本位置" :disabled="sampleType == 'bloodNo' || sampleType == 'biochemistryNo'"/>
+        </el-form-item>
+        <el-form-item label="血浆样本位置" prop="plasmaLocation" class="plasma">
+          <el-input v-model="form.plasmaLocation" maxlength="8" show-word-limit placeholder="请输入血浆样本位置" :disabled="sampleType == 'biochemistryNo' || sampleType == 'urineNo'"/>
+        </el-form-item>
+        <el-form-item label="血细胞样本位置" prop="bloodCellsLocation" class="bloodcells">
+          <el-input v-model="form.bloodCellsLocation" maxlength="8" show-word-limit placeholder="请输入血细胞样本位置" :disabled="sampleType == 'biochemistryNo' || sampleType == 'urineNo'"/>
         </el-form-item>
         <el-form-item label="体检日期" prop="checkupTime">
           <el-date-picker clearable v-model="form.checkupTime" type="date" value-format="timestamp" placeholder="选择体检日期" :disabled="modifyFlag"/>
@@ -259,6 +259,10 @@ export default {
         sex: [{ required: true, message: "性别不能为空", trigger: "blur" }],
         xNo: [{ required: true, message: "X线号不能为空", trigger: "blur" }],
         checkupTime: [{ required: true, message: "体检日期不能为空", trigger: "blur" }],
+        serumLocation: [{ pattern: /^\w{1}$|^\w{8}$/, message: "长度需为8位", trigger: "blur" }],
+        urineLocation: [{ pattern: /^\w{1}$|^\w{8}$/, message: "长度需为8位", trigger: "blur" }],
+        plasmaLocation: [{ pattern: /^\w{1}$|^\w{8}$/, message: "长度需为8位", trigger: "blur" }],
+        bloodCellsLocation: [{ pattern: /^\w{1}$|^\w{8}$/, message: "长度需为8位", trigger: "blur" }],
       },
       // 导入参数
       upload: {
@@ -345,6 +349,10 @@ export default {
       this.modifyFlag = false;
       this.sampleType = "";
       this.reset();
+      this.form.serumLocation = "Q";
+      this.form.plasmaLocation = "J";
+      this.form.bloodCellsLocation = "X";
+      this.form.urineLocation = "N";
       this.open = true;
       this.title = "添加生物样品入库登记";
     },
@@ -356,6 +364,18 @@ export default {
       const id = row.id;
       getBiologySample(id).then(response => {
         this.form = response.data;
+        if(this.form.serumLocation == null || this.form.serumLocation == ""){
+          this.form.serumLocation = "Q"
+        }
+        if(this.form.plasmaLocation == null || this.form.plasmaLocation == ""){
+          this.form.plasmaLocation = "J"
+        }
+        if(this.form.bloodCellsLocation == null || this.form.bloodCellsLocation == ""){
+          this.form.bloodCellsLocation = "X"
+        }
+        if(this.form.urineLocation == null || this.form.urineLocation == ""){
+          this.form.urineLocation = "N"
+        }
         this.open = true;
         this.title = "修改生物样品入库登记";
       });
@@ -374,6 +394,18 @@ export default {
           const id = map.id;
           getBiologySample(id).then(response => {
             this.form = response.data;
+            if(this.form.serumLocation == null || this.form.serumLocation == ""){
+              this.form.serumLocation = "Q"
+            }
+            if(this.form.plasmaLocation == null || this.form.plasmaLocation == ""){
+              this.form.plasmaLocation = "J"
+            }
+            if(this.form.bloodCellsLocation == null || this.form.bloodCellsLocation == ""){
+              this.form.bloodCellsLocation = "X"
+            }
+            if(this.form.urineLocation == null || this.form.urineLocation == ""){
+              this.form.urineLocation = "N"
+            }
             this.open = true;
             this.title = "修改生物样品入库登记";
           });
@@ -385,6 +417,18 @@ export default {
       this.$refs["form"].validate(valid => {
         if (!valid) {
           return;
+        }
+        if(this.form.serumLocation == "Q"){
+          this.form.serumLocation = "";
+        }
+        if(this.form.plasmaLocation == "J"){
+          this.form.plasmaLocation = ""
+        }
+        if(this.form.bloodCellsLocation == "X"){
+          this.form.bloodCellsLocation = ""
+        }
+        if(this.form.urineLocation == "N"){
+          this.form.urineLocation = ""
         }
         // 修改的提交
         if (this.form.id != null) {

@@ -85,8 +85,13 @@ public class BiologySampleServiceImpl implements BiologySampleService {
     }
 
     @Override
-    public List<BiologySampleDO> getSampleInfo(String sampleNo) {
-        return biologySampleMapper.getSampleInfo(sampleNo);
+    public List<BiologySampleDO> getSampleInfoBySampleNo(String sampleNo) {
+        return biologySampleMapper.getSampleInfoBySampleNo(sampleNo);
+    }
+
+    @Override
+    public List<BiologySampleDO> getSampleInfoByLocationNo(String locationNo) {
+        return biologySampleMapper.getSampleInfoByLocationNo(locationNo);
     }
 
     @Override

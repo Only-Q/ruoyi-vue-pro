@@ -70,7 +70,9 @@ public interface BiologySampleService {
      */
     List<BiologySampleDO> getBiologySampleList(BiologySampleExportReqVO exportReqVO);
 
-    List<BiologySampleDO> getSampleInfo(String sampleNo);
+    List<BiologySampleDO> getSampleInfoBySampleNo(String sampleNo);
+
+    List<BiologySampleDO> getSampleInfoByLocationNo(String locationNo);
 
     CommonResult<String> importBaseInfo(List<BaseInfoImportExcelVo> list);
 

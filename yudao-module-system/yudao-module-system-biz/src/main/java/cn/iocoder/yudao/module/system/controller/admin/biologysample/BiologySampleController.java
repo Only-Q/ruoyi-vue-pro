@@ -17,6 +17,8 @@ import java.io.IOException;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+
+import static cn.iocoder.yudao.framework.common.pojo.CommonResult.error;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
@@ -43,6 +45,23 @@ public class BiologySampleController {
     @ApiOperation("创建生物样品入库登记")
     @PreAuthorize("@ss.hasPermission('system:biology-sample:create')")
     public CommonResult<Long> createBiologySample(@Valid @RequestBody BiologySampleCreateReqVO createReqVO) {
+        List<BiologySampleDO> sampleInfoList1 = biologySampleService.getSampleInfoByLocationNo(createReqVO.getSerumLocation());
+        if(sampleInfoList1.size()>0){
+            return error(9999,"血清样本位置与["+sampleInfoList1.get(0).getName()+"]重复,请检查!");
+        }
+        List<BiologySampleDO> sampleInfoList2 = biologySampleService.getSampleInfoByLocationNo(createReqVO.getPlasmaLocation());
+        if(sampleInfoList2.size()>0){
+            return error(9999,"血浆样本位置与["+sampleInfoList2.get(0).getName()+"]重复,请检查!");
+        }
+        List<BiologySampleDO> sampleInfoList3 = biologySampleService.getSampleInfoByLocationNo(createReqVO.getBloodCellsLocation());
+        if(sampleInfoList3.size()>0){
+            return error(9999,"血细胞样本位置与["+sampleInfoList3.get(0).getName()+"]重复,请检查!");
+        }
+        List<BiologySampleDO> sampleInfoList4 = biologySampleService.getSampleInfoByLocationNo(createReqVO.getUrineLocation());
+        if(sampleInfoList4.size()>0){
+            return error(9999,"尿样样本位置与["+sampleInfoList4.get(0).getName()+"]重复,请检查!");
+        }
+
         return success(biologySampleService.createBiologySample(createReqVO));
     }
 
@@ -50,6 +69,22 @@ public class BiologySampleController {
     @ApiOperation("更新生物样品入库登记")
     @PreAuthorize("@ss.hasPermission('system:biology-sample:update')")
     public CommonResult<Boolean> updateBiologySample(@Valid @RequestBody BiologySampleUpdateReqVO updateReqVO) {
+        List<BiologySampleDO> sampleInfoList1 = biologySampleService.getSampleInfoByLocationNo(updateReqVO.getSerumLocation());
+        if(sampleInfoList1.size()>0 && !sampleInfoList1.get(0).getId().equals(updateReqVO.getId())){
+            return error(9999,"血清样本位置与["+sampleInfoList1.get(0).getName()+"]重复,请检查!");
+        }
+        List<BiologySampleDO> sampleInfoList2 = biologySampleService.getSampleInfoByLocationNo(updateReqVO.getPlasmaLocation());
+        if(sampleInfoList2.size()>0 && !sampleInfoList2.get(0).getId().equals(updateReqVO.getId())){
+            return error(9999,"血浆样本位置与["+sampleInfoList2.get(0).getName()+"]重复,请检查!");
+        }
+        List<BiologySampleDO> sampleInfoList3 = biologySampleService.getSampleInfoByLocationNo(updateReqVO.getBloodCellsLocation());
+        if(sampleInfoList3.size()>0 && !sampleInfoList3.get(0).getId().equals(updateReqVO.getId())){
+            return error(9999,"血细胞样本位置与["+sampleInfoList3.get(0).getName()+"]重复,请检查!");
+        }
+        List<BiologySampleDO> sampleInfoList4 = biologySampleService.getSampleInfoByLocationNo(updateReqVO.getUrineLocation());
+        if(sampleInfoList4.size()>0 && !sampleInfoList4.get(0).getId().equals(updateReqVO.getId())){
+            return error(9999,"尿样样本位置与["+sampleInfoList4.get(0).getName()+"]重复,请检查!");
+        }
         biologySampleService.updateBiologySample(updateReqVO);
         return success(true);
     }
@@ -104,7 +139,7 @@ public class BiologySampleController {
     @GetMapping("/getSampleInfo")
     public CommonResult<Map<String,String>> getSampleInfo(@RequestParam("sampleNo") String sampleNo) {
         Map<String,String> returnMap = new HashMap<>();
-        List<BiologySampleDO> sampleInfoList = biologySampleService.getSampleInfo(sampleNo);
+        List<BiologySampleDO> sampleInfoList = biologySampleService.getSampleInfoBySampleNo(sampleNo);
         if(sampleInfoList.size() == 1){
             BiologySampleDO en = sampleInfoList.get(0);
             String sampleType = "";

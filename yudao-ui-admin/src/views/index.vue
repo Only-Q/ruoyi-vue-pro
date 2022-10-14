@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard-editor-container">
+<!--  <div class="dashboard-editor-container">
 
     <panel-group @handleSetLineChartData="handleSetLineChartData" />
 
@@ -25,8 +25,8 @@
       </el-col>
     </el-row>
 
-    
-  </div>
+
+  </div>-->
 </template>
 
 <script>

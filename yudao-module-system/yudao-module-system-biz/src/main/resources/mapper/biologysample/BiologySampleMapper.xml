@@ -10,12 +10,22 @@
      -->
     <resultMap id="BaseResultMap" type="cn.iocoder.yudao.module.system.dal.dataobject.biologysample.BiologySampleDO" >
         <id column="id" property="id" jdbcType="BIGINT" />
+        <result column="name" property="name" jdbcType="VARCHAR" />
         <result column="blood_no" property="bloodNo" jdbcType="VARCHAR" />
         <result column="biochemistry_no" property="biochemistryNo" jdbcType="VARCHAR" />
         <result column="urine_no" property="urineNo" jdbcType="VARCHAR" />
+        <result column="serum_location" property="serumLocation" jdbcType="VARCHAR" />
+        <result column="plasma_location" property="plasmaLocation" jdbcType="VARCHAR" />
+        <result column="blood_cells_location" property="bloodCellsLocation" jdbcType="VARCHAR" />
+        <result column="urine_location" property="urineLocation" jdbcType="VARCHAR" />
+
     </resultMap>
-    <select id="getSampleInfo" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <select id="getSampleInfoBySampleNo" parameterType="java.lang.String" resultMap="BaseResultMap">
         select * from system_biology_sample where blood_no = #{sampleNo} or biochemistry_no = #{sampleNo} or urine_no = #{sampleNo}
+    </select>
+
+    <select id="getSampleInfoByLocationNo" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select * from system_biology_sample where serum_location = #{locationNo} or plasma_location = #{locationNo} or blood_cells_location = #{locationNo} or urine_location = #{locationNo}
     </select>
 
 </mapper>

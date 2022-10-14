@@ -57,6 +57,8 @@ public interface BiologySampleMapper extends BaseMapperX<BiologySampleDO> {
                 .orderByDesc(BiologySampleDO::getId));
     }
 
-    List<BiologySampleDO> getSampleInfo(String sampleNo);
+    List<BiologySampleDO> getSampleInfoBySampleNo(String sampleNo);
+
+    List<BiologySampleDO> getSampleInfoByLocationNo(String locationNo);
 
 }
