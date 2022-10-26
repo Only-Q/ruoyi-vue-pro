@@ -177,8 +177,16 @@
         <el-form-item label="备注" prop="remark">
           <el-input type="textarea" :rows="4" v-model="form.remark" placeholder="请输入备注" />
         </el-form-item>
+        <el-form-item label="打印预览" prop="remark">
+          <div id="printView" class="print-view">
+            <div style="margin-left:25px">{{ form.name }}</div>
+            <div style="margin-left:25px">{{formartDate(form.checkupTime)}}</div>
+            <div style="margin-left:25px">{{form.xNo}}</div>
+          </div>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
+        <el-button type="primary" plain v-print="'#printView'" icon="el-icon-printer" style="margin-left:35px;margin-top:20px">打印</el-button>
         <el-button type="primary" @click="submitForm">确 定</el-button>
         <el-button @click="cancel">取 消</el-button>
       </div>
@@ -493,10 +501,24 @@ export default {
     submitFileForm() {
       this.$refs.upload.submit();
     },
+    formartDate(param) {
+     let date = new Date(param);
+     let Y = date.getFullYear() + '-';
+     let M = date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) + '-' : date.getMonth() + 1 + '-';
+     let D = date.getDate() < 10 ? '0' + date.getDate() + ' ' : date.getDate() + ' ';
+     let h = date.getHours() < 10 ? '0' + date.getHours() + ':' : date.getHours() + ':';
+     let m = date.getMinutes() < 10 ? '0' + date.getMinutes() + ':' : date.getMinutes() + ':';
+     let s = date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds();
+     return Y + M + D;
+    }
   }
 };
 </script>
 <style>
+  @page{
+    size: auto;
+    margin: 0mm;
+  }
   .serum .el-form-item__label{
     color: green;
   }
@@ -508,5 +530,8 @@ export default {
   }
   .urine .el-form-item__label{
     color: blue;
+  }
+  .print-view{
+    line-height: 20px;
   }
 </style>

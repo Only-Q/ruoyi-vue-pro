@@ -24,6 +24,8 @@ import RightToolbar from "@/components/RightToolbar"
 // import hljs from 'highlight.js'
 // import 'highlight.js/styles/github-gist.css'
 import {DICT_TYPE, getDictDataLabel, getDictDatas, getDictDatas2} from "@/utils/dict";
+//打印
+import Print from 'vue-print-nb';
 
 // 全局方法挂载
 Vue.prototype.getDicts = getDicts
@@ -53,6 +55,7 @@ Vue.use(directive)
 Vue.use(plugins)
 Vue.use(VueMeta)
 // Vue.use(hljs.vuePlugin);
+Vue.use(Print)
 
 // bpmnProcessDesigner 需要引入
 import MyPD from "@/components/bpmnProcessDesigner/package/index.js";
