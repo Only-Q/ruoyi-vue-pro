@@ -179,9 +179,9 @@
         </el-form-item>
         <el-form-item label="打印预览" prop="remark">
           <div id="printView" class="print-view">
-            <div style="margin-left:25px">{{ form.name }}</div>
-            <div style="margin-left:25px">{{formartDate(form.checkupTime)}}</div>
-            <div style="margin-left:25px">{{form.xNo}}</div>
+            <div>{{ form.name }}</div>
+            <div>{{formartDate(form.checkupTime)}}</div>
+            <div>{{form.xNo}}</div>
           </div>
         </el-form-item>
       </el-form>
