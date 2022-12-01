@@ -142,6 +142,8 @@ public interface ErrorCodeConstants {
     ErrorCode OAUTH2_CODE_EXPIRE = new ErrorCode(1002022000, "code 已过期");
 
     ErrorCode BIOLOGY_SAMPLE_NOT_EXISTS = new ErrorCode(1002023000, "生物样品入库登记不存在");
+    ErrorCode UPLOAD_NOT_EXISTS = new ErrorCode(1002024000, "文件上传不存在");
+
 
 
 }
