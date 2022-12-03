@@ -28,6 +28,11 @@ spring:
         wall:
           config:
             multi-statement-allow: true
+    servlet:
+      multipart:
+        enabled: true
+        max-file-size: 200MB
+        max-request-size: 200MB
     dynamic: # 多数据源配置
       druid: # Druid 【连接池】相关的全局配置
         initial-size: 5 # 初始连接数
