@@ -61,7 +61,7 @@ public class AsyncParse {
             ExcelUtil.writeExcel(excelCont,excelPath);
             upload.setExcelPath(excelPath);
             log.info("结束解析...");
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             upload.setFailReason(e.getMessage());
             upload.setAnalysisStatus(2);

@@ -11,14 +11,13 @@ import java.util.concurrent.Future;
 @Service("pdfReadExecutor")
 public class PdfReadExecutor {
     @Async
-    public Future<LinkedHashMap<String,Object>> readPdf(String pdfPath) {
+    public Future<Object> readPdf(String pdfPath) {
         try {
             LinkedHashMap<String, Object> pdfRes = PdfOcrUtils.processPdfContent(pdfPath);
             return new AsyncResult<>(pdfRes);
         } catch (Exception e) {
-            e.printStackTrace();
+            return new AsyncResult<>(pdfPath + "\t" + e.getMessage());
         }
-        return new AsyncResult<>(null);
     }
 
 }

@@ -5,8 +5,8 @@ import cv2
 import fitz
 import numpy as np
 from paddleocr import PaddleOCR
-pOCR = PaddleOCR(lang='ch')
-mat = fitz.Matrix(4.0, 4.0)
+pOCR = PaddleOCR(type='STRUCTURE',use_angle_cls=True,lang='ch')
+mat = fitz.Matrix(2.0,2.0)
 
 def pdf_ocr(url):
     try:

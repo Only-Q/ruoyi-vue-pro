@@ -42,7 +42,8 @@ public class PdfOcrUtils {
                         excelMap.put("性别", line);
                         continue;
                     }
-                    if (Convert.toInt(line, 100).compareTo(100) < 0) {
+                    Integer ageVal = Convert.toInt(line);
+                    if (ageVal!= null && ageVal.compareTo(100) < 0) {
                         excelMap.put("年龄", line);
                         continue;
                     }
@@ -108,10 +109,12 @@ public class PdfOcrUtils {
                             excelMap.put(line, "/");
                         } else {
                             excelMap.put(line, value);
+                            i++;
                         }
                         continue;
                     }
                     if (checkContains(drinkHis, line)) {
+                        ignoreField.addAll(fields.keySet());
                         StringBuilder sb = new StringBuilder();
                         String endLine;
                         if (line.contains("饮酒状况")) {
@@ -140,6 +143,7 @@ public class PdfOcrUtils {
                         continue;
                     }
                     if (checkContains(tabFieldMap, line)) {
+                        ignoreField.addAll(drinkHis);
                         LinkedHashMap<String, Object> map = new LinkedHashMap<>();
                         i = tabFieldProcess(line, i + 1, pageList, ignoreField, map);
                         if(line.contains("般检查")){
@@ -150,12 +154,14 @@ public class PdfOcrUtils {
                         continue;
                     }
                     if (checkContains(unitTabFields, line)) {
+                        ignoreField.addAll(tabFieldMap);
                         LinkedHashMap<String, Map<String, String>> map = new LinkedHashMap<>();
                         i = unitTabFieldProcess(i + 1, pageList, ignoreField, map);
                         excelMap.put(line, map);
                         continue;
                     }
                     if (line.contains("DR检查报告单")) {
+                        ignoreField.addAll(unitTabFields);
                         LinkedHashMap<String, String> map = new LinkedHashMap<>();
                         i = reportImgProcess(i + 1, pageList, ignoreField, map);
                         excelMap.put(line, map);
@@ -373,7 +379,7 @@ public class PdfOcrUtils {
             if (checkIsIgnore(ignoreFields, line)) {
                 continue;
             }
-            if (line.matches("[+-≤]?[0-9]+(\\.[0-9]+)?[个↑+]?")) {
+            if (line.matches("[+-≤]?[0-9]+(\\.[0-9]+)?[个↑+↓]?")) {
                 checkRes.add(line.replaceAll("[个↑]", ""));
                 continue;
             }

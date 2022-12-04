@@ -5,6 +5,7 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.NumberUtil;
 import cn.iocoder.yudao.module.system.util.AsyncUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -23,26 +24,39 @@ public class PdfReadServiceImpl implements PdfReadService {
     public List<List<String>> readPdfs(List<String> pdfPaths) throws ExecutionException, InterruptedException {
         StopWatch stopWatch = new StopWatch("解析pdf");
         stopWatch.start("开始解析");
-        List<Future<LinkedHashMap<String, Object>>> pdfFuture = new ArrayList<>();
+        List<Future<Object>> pdfFuture = new ArrayList<>();
         for (String pdfPath : pdfPaths) {
-            Future<LinkedHashMap<String, Object>> futureRes = pdfReadExecutor.readPdf(pdfPath);
+            Future<Object> futureRes = pdfReadExecutor.readPdf(pdfPath);
             pdfFuture.add(futureRes);
         }
 
         while (!AsyncUtils.isStop(pdfFuture)) {
-            Thread.sleep(60 * 1000);
+            Thread.sleep(10000);
         }
+        List<LinkedHashMap<String, Object>> pdfMapFuture = new ArrayList<>();
+        StringBuffer futureResStr = new StringBuffer();
+        for (Future<Object> future : pdfFuture) {
+            Object futureRes = future.get();
+            if (futureRes instanceof String) {
+                futureResStr.append(Convert.toStr(futureRes)).append("\n");
+            } else {
+                pdfMapFuture.add((LinkedHashMap<String, Object>) futureRes);
+            }
+        }
+        if (StringUtils.isNotBlank(futureResStr.toString())) {
+            throw new RuntimeException(futureResStr.toString());
+        }
+
         stopWatch.stop();
         stopWatch.start("整合数据");
         Integer careerSize = 0;
         LinkedHashMap<String, Set<String>> fieldMap = new LinkedHashMap<>();
         Map<String, Set<String>> subMapSize = new HashMap<>();
         List<LinkedHashMap<String, Object>> pdfContents = new ArrayList<>();
-        for (Future<LinkedHashMap<String, Object>> future : pdfFuture) {
-            LinkedHashMap<String, Object> pdfContent = future.get();
+        for (LinkedHashMap<String, Object> pdfContent : pdfMapFuture) {
             pdfContents.add(pdfContent);
             Integer subCareerSize = Convert.toInt(pdfContent.get("careerSize"));
-            if (NumberUtil.compare(careerSize, subCareerSize) < 0) {
+            if (subCareerSize != null && NumberUtil.compare(careerSize, subCareerSize) < 0) {
                 careerSize = subCareerSize;
             }
             pdfContent.forEach((k, v) -> {
