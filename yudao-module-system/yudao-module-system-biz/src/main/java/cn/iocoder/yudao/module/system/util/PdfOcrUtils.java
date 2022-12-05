@@ -462,8 +462,8 @@ public class PdfOcrUtils {
                             excelMap.put(getListItemByIndex(fields, 0), fvcVal);
                         } else {
                             String[] subFields = fvcVal.split("FEV1[:：]{1}");
-                            if (StringUtils.isNumeric(subFields[0])) {
-                                excelMap.put(getListItemByIndex(fields, 0), subFields[0]);
+                            if (StringUtils.isNumeric(subFields[0].trim())) {
+                                excelMap.put(getListItemByIndex(fields, 0), subFields[0].trim());
                             }
                         }
                     } else {
