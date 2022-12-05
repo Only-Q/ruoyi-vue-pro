@@ -113,7 +113,7 @@ public class UploadController {
         UploadDO upload = uploadService.getUpload(Long.parseLong(id));
         // 要下载的文件的全路径名
         String filePath =upload.getExcelPath();
-        String name = upload.getFileName();
+        String name = upload.getFileName().substring(0,upload.getFileName().indexOf("."))+".xlsx";
         File file = new File(filePath);
         byte[] buffer = new byte[1024];
         BufferedInputStream bis = null;

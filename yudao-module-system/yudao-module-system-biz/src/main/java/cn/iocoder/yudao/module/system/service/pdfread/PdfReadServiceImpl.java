@@ -3,6 +3,8 @@ package cn.iocoder.yudao.module.system.service.pdfread;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.NumberUtil;
+import cn.iocoder.yudao.module.system.dal.dataobject.upload.UploadDO;
+import cn.iocoder.yudao.module.system.dal.mysql.upload.UploadMapper;
 import cn.iocoder.yudao.module.system.util.AsyncUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -10,6 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
+import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -19,9 +24,11 @@ public class PdfReadServiceImpl implements PdfReadService {
 
     @Autowired
     private PdfReadExecutor pdfReadExecutor;
+    @Resource
+    private UploadMapper uploadMapper;
 
     @Override
-    public List<List<String>> readPdfs(List<String> pdfPaths) throws ExecutionException, InterruptedException {
+    public List<List<String>> readPdfs(List<String> pdfPaths, UploadDO upload) throws ExecutionException, InterruptedException {
         StopWatch stopWatch = new StopWatch("解析pdf");
         stopWatch.start("开始解析");
         List<Future<Object>> pdfFuture = new ArrayList<>();
@@ -29,10 +36,17 @@ public class PdfReadServiceImpl implements PdfReadService {
             Future<Object> futureRes = pdfReadExecutor.readPdf(pdfPath);
             pdfFuture.add(futureRes);
         }
-
-        while (!AsyncUtils.isStop(pdfFuture)) {
-            Thread.sleep(10000);
-        }
+        do{
+            Map<String, Integer> stopMap = AsyncUtils.isStop(pdfFuture);
+            if(stopMap.get("flag") == 0){
+                int sucess = stopMap.get("sucess");
+                upload.setAnalysisSpeed(new BigDecimal(sucess).divide(new BigDecimal(pdfPaths.size()),2, RoundingMode.HALF_UP).multiply(new BigDecimal("100")).toString() + "%");
+                uploadMapper.updateById(upload);
+                Thread.sleep(10000);
+            }else {
+                break;
+            }
+        }while (true);
         List<LinkedHashMap<String, Object>> pdfMapFuture = new ArrayList<>();
         StringBuffer futureResStr = new StringBuffer();
         for (Future<Object> future : pdfFuture) {

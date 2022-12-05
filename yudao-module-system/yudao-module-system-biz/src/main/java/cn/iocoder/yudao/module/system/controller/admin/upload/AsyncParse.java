@@ -58,10 +58,13 @@ public class AsyncParse {
                     pdfPaths.add(pdfPath);
                 }
             }
-            String excelPath = dirPath + upload.getId() + ".xlsx";
-            List<List<String>> excelCont = pdfReadService.readPdfs(pdfPaths);
+            String excelPath = dirPath + upload.getFileName().substring(0,upload.getFileName().indexOf(".")) + ".xlsx";
+            List<List<String>> excelCont = pdfReadService.readPdfs(pdfPaths,upload);
             ExcelUtil.writeExcel(excelCont, excelPath);
             upload.setExcelPath(excelPath);
+            upload.setAnalysisStatus(3);
+            upload.setAnalysisSpeed("100%");
+            uploadMapper.updateById(upload);
             log.info("结束解析...");
         } catch (Exception e) {
             e.printStackTrace();
@@ -81,14 +84,6 @@ public class AsyncParse {
                 log.error("删除文件报错", e);
             }
         }
-        //解析完一个修改解析进度
-//        upload.setAnalysisSpeed("?%");
-//        uploadMapper.updateById(upload);
-        //全部解析完修改解析状态为解析成功，解析进度为100%，填充Excel路径，将Excel放到UPLOADPATH_XXX/upload.getId()下，名字和原文件名字一样
-        upload.setAnalysisStatus(3);
-        upload.setAnalysisSpeed("100%");
-        upload.setExcelPath("???");
-        uploadMapper.updateById(upload);
         log.info("结束异步解析PDF...");
     }
 

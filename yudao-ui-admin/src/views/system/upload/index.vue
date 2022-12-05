@@ -56,7 +56,7 @@
           <dict-tag :type="DICT_TYPE.ANALYSIS_STATUS" :value="scope.row.analysisStatus" />
         </template>
       </el-table-column>
-      <el-table-column label="解析失败原因" align="center" prop="failReason" />
+      <el-table-column label="解析失败原因" align="center" prop="failReason" show-overflow-tooltip/>
 <!--      <el-table-column label="Excel路径" align="center" prop="excelPath" />-->
       <el-table-column label="解析进度" align="center" prop="analysisSpeed" />
       <el-table-column label="创建时间" align="center" prop="createTime" width="180">
@@ -108,7 +108,7 @@
     </el-dialog>
     <!-- 导入对话框 -->
     <el-dialog :title="upload.title" :visible.sync="upload.open" width="400px" append-to-body>
-      <el-upload ref="upload" :limit="1" accept=".zip" :headers="upload.headers"
+      <el-upload ref="upload" :limit="1" accept=".zip" :headers="upload.headers" :file-list="fileList"
                  :action="upload.url" :disabled="upload.isUploading" :before-upload="beforeAvatarUpload"
                  :on-progress="handleFileUploadProgress" :on-success="handleFileSuccess" :auto-upload="false" drag>
         <i class="el-icon-upload"></i>
@@ -176,6 +176,7 @@ export default {
         // 上传的地址
         url: process.env.VUE_APP_BASE_API + '/admin-api/system/upload/import'
       },
+      fileList: [],
       // 表单参数
       form: {},
       // 表单校验
@@ -193,6 +194,7 @@ export default {
     handleImport() {
       this.upload.title = "体检报告导入";
       this.upload.open = true;
+      this.fileList = [];
     },
     //文件上传前处理
     beforeAvatarUpload(file) {
@@ -321,20 +323,7 @@ export default {
       this.$modal.confirm('是否确认下载'+fileName+'的解析结果?').then(() => {
         this.downloadLoading = true;
         downloadFile(row.id).then(res => {
-          const blob = new Blob(res);
-          const fileName = "pdf.xlsx";
-          if ('download' in document.createElement("a")) {
-            const link = document.createElement("a");
-            link.download = fileName;
-            link.style.display = 'none';
-            link.href = URL.createObjectURL(blob);
-            document.body.appendChild(link);
-            link.click();
-            URL.revokeObjectURL(link.href);
-            document.body.removeChild(link);
-          } else {
-            navigator.msSaveBlob(blob, fileName);
-          }
+          this.$download.excel(res, fileName.split(".")[0]+'.xlsx');
           this.downloadLoading = false;
         });
       }).catch(() => {this.downloadLoading = false;});
