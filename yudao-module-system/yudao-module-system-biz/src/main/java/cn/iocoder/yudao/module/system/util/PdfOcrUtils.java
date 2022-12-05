@@ -23,14 +23,16 @@ public class PdfOcrUtils {
                 String nextTitle = null;
                 for (int j = 2; j < pageList.size(); j++) {
                     String line = pageList.get(j).replaceAll("[一二三四五六七八九十 　]*", "")
-                            .replaceAll("[(（]+", "(").replaceAll("[)）]+", ")");
+                            .replaceAll("[(（)）]+", "");
                     if (line.contains(":") || line.contains("：")) {
                         List<String> lineSplit = Arrays.asList(line.split("[:：]"));
-                        excelMap.put(getListItemByIndex(lineSplit, 0).replaceAll("[ 　:]{0,}", ""),
-                                getListItemByIndex(lineSplit, 1));
+                        if (StringUtils.isNotBlank(getListItemByIndex(lineSplit, 1))) {
+                            excelMap.put(getListItemByIndex(lineSplit, 0).replaceAll("[ 　:]{0,}", ""),
+                                    getListItemByIndex(lineSplit, 1));
+                        }
                         nextTitle = getListItemByIndex(lineSplit, 0);
                     } else {
-                        String lastVal = Convert.toStr(excelMap.get(nextTitle));
+                        String lastVal = Convert.toStr(excelMap.get(nextTitle), "");
                         excelMap.put(nextTitle, lastVal + line);
                     }
                 }
@@ -42,9 +44,16 @@ public class PdfOcrUtils {
                         excelMap.put("性别", line);
                         continue;
                     }
+                    if (line.matches("[xX]+线号")
+                            && (!excelMap.containsKey("X线号") && !excelMap.containsKey("x线号"))) {
+                        excelMap.put("X线号", pageList.get(i + 1));
+                        i++;
+                        continue;
+                    }
                     Integer ageVal = Convert.toInt(line);
-                    if (ageVal!= null && ageVal.compareTo(100) < 0) {
-                        excelMap.put("年龄", line);
+                    if (StringUtils.isNumeric(line.trim()) && ageVal != null
+                            && ageVal.compareTo(0) > 0 && ageVal.compareTo(100) < 0) {
+                        excelMap.put("年龄", line.trim());
                         continue;
                     }
                     if (fields.contains(line)) {
@@ -241,11 +250,11 @@ public class PdfOcrUtils {
                     .replaceAll("[(（]+", "(").replaceAll("[)）]+", ")");
             if (line.contains("单位")) {
                 for (int j = x ; j < pageList.size(); j++) {
-                    String subLine = pageList.get(j);
+                    String subLine = pageList.get(j).replaceAll("[(（]+", "(").replaceAll("[)）]+", ")").trim();
                     if (checkIsIgnore(ignoreFields, subLine)) {
                         continue;
                     }
-                    if (subLine.matches("[0-9]*%")) {
+                    if (subLine.matches("[%]?[0-9]*%")) {
                         if (pageList.get(j - 1).matches("[+-]?[0-9]+(\\.[0-9]+)?")) {
                             checkRes.add(pageList.get(j - 1));
                         }
@@ -379,8 +388,8 @@ public class PdfOcrUtils {
             if (checkIsIgnore(ignoreFields, line)) {
                 continue;
             }
-            if (line.matches("[+-≤]?[0-9]+(\\.[0-9]+)?[个↑+↓]?")) {
-                checkRes.add(line.replaceAll("[个↑]", ""));
+            if (line.matches("[+-≤≥]?[0-9]+(\\.[0-9]+)?[个↑+↓]?")) {
+                checkRes.add(line.replaceAll("[个]", "↑"));
                 continue;
             }
             if (line.matches("^[×a-zA-Z0-9\\^.-]{0,}[/% -]{0,}[0-9a-zA-Z.-]{0,}$|一")) {
@@ -433,21 +442,22 @@ public class PdfOcrUtils {
                 if (checkIsIgnore(ignoreFields, xLine)) {
                     continue;
                 }
-                if (xLine.equals("结论")) {
-                    excelMap.put(xLine, getListItemByIndex(pageList, x + 1));
-                    i = x + 1;
-                    break;
-                } else if (!xLine.equals("描述")) {
-                    if (StringUtils.isNumeric(xLine)) {
-                        excelMap.put(keyNoVal, xLine);
-                    } else {
-                        List<String> fields = Arrays.asList(xLine.split("[:：]"));
-                        if (fields.size() == 1) {
-                            keyNoVal = fields.get(0);
-                        }else{
-                            excelMap.put(getListItemByIndex(fields, 0), getListItemByIndex(fields, 1));
+                if (xLine.matches("FVC[:：]?")) {
+                    List<String> fields = Arrays.asList(xLine.split("[:：]"));
+                    if (fields.size() == 1) {
+                        String fvcVal = pageList.get(x + 1).trim();
+                        if (StringUtils.isNumeric(fvcVal)) {
+                            excelMap.put(getListItemByIndex(fields, 0), fvcVal);
+                        } else {
+                            String[] subFields = fvcVal.split("FEV1[:：]{1}");
+                            if (StringUtils.isNumeric(subFields[0])) {
+                                excelMap.put(keyNoVal, subFields[0]);
+                            }
                         }
+                    } else {
+                        excelMap.put(getListItemByIndex(fields, 0), getListItemByIndex(fields, 1));
                     }
+                    break;
                 }
             }
         } else if (tabField.equals("胸片后前位") || tabField.equals("十二导心电分析")) {
@@ -457,7 +467,7 @@ public class PdfOcrUtils {
                     continue;
                 }
                 if (xLine.equals("结论")) {
-                    excelMap.put(tabField, getListItemByIndex(pageList, x + 1));
+                    excelMap.put(xLine, getListItemByIndex(pageList, x + 1));
                     i = x + 1;
                     break;
                 }

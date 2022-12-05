@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -41,13 +43,13 @@ public class AsyncParse {
         //修改解析状态为解析中
         upload.setAnalysisStatus(1);
         uploadMapper.updateById(upload);
+        String dirPath = getDirPath() + upload.getId() + "/";
+        File dirFile = new File(dirPath);
+        String[] subFiles = dirFile.list();
         //解析
         try {
             log.info("开始解析...");
             Thread.sleep(10000);
-            String dirPath = getDirPath() + upload.getId() + "/";
-            File dirFile = new File(dirPath);
-            String[] subFiles = dirFile.list();
             List<String> pdfPaths = new ArrayList<>();
             for (int i = 0; i < subFiles.length; i++) {
                 String subFile = subFiles[i];
@@ -58,7 +60,7 @@ public class AsyncParse {
             }
             String excelPath = dirPath + upload.getId() + ".xlsx";
             List<List<String>> excelCont = pdfReadService.readPdfs(pdfPaths);
-            ExcelUtil.writeExcel(excelCont,excelPath);
+            ExcelUtil.writeExcel(excelCont, excelPath);
             upload.setExcelPath(excelPath);
             log.info("结束解析...");
         } catch (Exception e) {
@@ -67,6 +69,17 @@ public class AsyncParse {
             upload.setAnalysisStatus(2);
             uploadMapper.updateById(upload);
             return;
+        } finally {
+            try {
+                for (String filePath : subFiles) {
+                    if (!StringUtils.endsWithIgnoreCase(filePath, ".xlsx")
+                            && !StringUtils.endsWithIgnoreCase(filePath, ".xls")) {
+                        Files.delete(Paths.get(dirPath + "/" + filePath));
+                    }
+                }
+            } catch (Exception e) {
+                log.error("删除文件报错", e);
+            }
         }
         //解析完一个修改解析进度
 //        upload.setAnalysisSpeed("?%");

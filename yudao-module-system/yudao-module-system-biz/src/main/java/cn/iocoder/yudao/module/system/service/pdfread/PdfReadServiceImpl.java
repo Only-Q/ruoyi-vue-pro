@@ -130,9 +130,12 @@ public class PdfReadServiceImpl implements PdfReadService {
                         }
                         valueList.add(sb.toString());
                     }
-                    continue;
+                } else {
+                    valueList.add("");
+                    if (subMapSize.containsKey(field)) {
+                        j = getSubMapValByField(needHead, j + 1, valueList, headList, new HashMap<>(), subMapSize, field, true);
+                    }
                 }
-                valueList.add("");
             }
             excelCon.add(valueList);
         }
@@ -160,9 +163,12 @@ public class PdfReadServiceImpl implements PdfReadService {
                 } else {
                     valueList.add(Convert.toStr(o, ""));
                 }
-                continue;
+            } else {
+                valueList.add("");
+                if (subMapSize.containsKey(subField)) {
+                    i = getSubMapValByField(needHead, i, valueList, headList, new HashMap<>(), subMapSize, subField, false);
+                }
             }
-            valueList.add("");
         }
         if (indexPlusFlag) {
             i = i - 1;
