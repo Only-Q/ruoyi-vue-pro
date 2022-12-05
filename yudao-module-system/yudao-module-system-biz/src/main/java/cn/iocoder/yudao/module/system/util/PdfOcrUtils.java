@@ -37,6 +37,9 @@ public class PdfOcrUtils {
                     }
                 }
             } else if ("职业健康检查报告".equals(firLine)) {
+                List<String> deptList = splitString(Convert.toStr(excelMap.getOrDefault("单位名称", "")));
+                List<String> badResion = Arrays.asList("煤尘", "噪声", "一氧化碳", "二氧化硫", "硫化氢", "氨", "甲烷", "振动", "手传", "一氧", "化碳", "化硫", "二氧", "硫", "氢");
+                List<String> protList = Arrays.asList("防尘口罩", "防噪耳塞", "防");
                 List<String> fields = Arrays.asList("婚姻状况", "总工龄", "接害工龄");
                 for (int i = 0; i < pageList.size(); i++) {
                     String line = pageList.get(i).replaceAll("[、：一二三四五六七八九十]*[：:]*", "");
@@ -61,29 +64,36 @@ public class PdfOcrUtils {
                         continue;
                     }
                     if (line.equals("职业史")) {
-                        //TODO
-                        List<String> keys = new ArrayList<>();
-                        for (int x = i + 1; x <= i + 5; x++) {
-                            String subLine = pageList.get(x);
-                            excelMap.put(subLine, new ArrayList<>());
-                            keys.add(subLine);
-                        }
                         for (int x = i + 6; x < pageList.size(); x++) {
-                            int keyIndex = (x - i - 6) % 5;
-                            String key = keys.get(keyIndex);
                             String subLine = pageList.get(x);
-                            List<String> his = (List<String>) excelMap.getOrDefault(key, new ArrayList<>());
                             if (subLine.contains("受检人签字")) {
-                                if (CollectionUtils.isEmpty(his)) {
-                                    his.add("/");
-                                }
-                                excelMap.put(key, his);
-                                Integer careerSize = ((List<String>) excelMap.getOrDefault("有害因素", new ArrayList<>())).size();
-                                excelMap.put("careerSize", (careerSize > 0 ? careerSize : 1));
+                                i = x;
                                 break;
                             }
-                            his.add(subLine);
-                            excelMap.put(key, his);
+                            if (subLine.matches("[0-9-至今]*")) {
+                                String timeStr = Convert.toStr(excelMap.getOrDefault("起止时间", ""));
+                                excelMap.put("起止时间", timeStr + subLine);
+                                continue;
+                            }
+                            if (checkContains(deptList, subLine)) {
+                                String deptStr = Convert.toStr(excelMap.getOrDefault("工作单位", ""));
+                                excelMap.put("工作单位", deptStr + subLine);
+                                continue;
+                            }
+                            if (subLine.contains("工")) {
+                                String workStr = Convert.toStr(excelMap.getOrDefault("工种", ""));
+                                excelMap.put("工种", workStr + subLine);
+                                continue;
+                            }
+                            if (checkContains(badResion, subLine)) {
+                                String badResonStr = Convert.toStr(excelMap.getOrDefault("有害因素", ""));
+                                excelMap.put("有害因素", badResonStr + subLine);
+                                continue;
+                            }
+                            if (checkContains(protList, subLine)) {
+                                String protStr = Convert.toStr(excelMap.getOrDefault("防护措施", ""));
+                                excelMap.put("防护措施", protStr + subLine);
+                            }
                         }
                         break;
                     }
@@ -254,7 +264,7 @@ public class PdfOcrUtils {
                     if (checkIsIgnore(ignoreFields, subLine)) {
                         continue;
                     }
-                    if (subLine.matches("[%]?[0-9]*%")) {
+                    if (subLine.matches("[0-9]*%|%[0-9]*")) {
                         if (pageList.get(j - 1).matches("[+-]?[0-9]+(\\.[0-9]+)?")) {
                             checkRes.add(pageList.get(j - 1));
                         }
@@ -411,6 +421,9 @@ public class PdfOcrUtils {
                 checkRes.clear();
             }
             lastLine = line;
+            if (lastLine.contains("谷氨酰转肽酶")) {
+                lastLine = "γ-谷氨酰转肽酶";
+            }
             i = x;
         }
         return i;
@@ -435,14 +448,13 @@ public class PdfOcrUtils {
                 }
             }
         } else if (tabField.equals("肺功能检查")) {
-            String keyNoVal = null;
             for (int x = i; x < pageList.size(); x++) {
                 String xLine = pageList.get(x).replaceAll("[ 　]{0,}", "")
                         .replaceAll("[(（]+", "(").replaceAll("[)）]+", ")");
                 if (checkIsIgnore(ignoreFields, xLine)) {
                     continue;
                 }
-                if (xLine.matches("FVC[:：]?")) {
+                if (xLine.matches("FVC[:：0-9]{0,}")) {
                     List<String> fields = Arrays.asList(xLine.split("[:：]"));
                     if (fields.size() == 1) {
                         String fvcVal = pageList.get(x + 1).trim();
@@ -451,7 +463,7 @@ public class PdfOcrUtils {
                         } else {
                             String[] subFields = fvcVal.split("FEV1[:：]{1}");
                             if (StringUtils.isNumeric(subFields[0])) {
-                                excelMap.put(keyNoVal, subFields[0]);
+                                excelMap.put(getListItemByIndex(fields, 0), subFields[0]);
                             }
                         }
                     } else {
