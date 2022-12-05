@@ -199,15 +199,15 @@ export default {
     //文件上传前处理
     beforeAvatarUpload(file) {
       const isZIP = file.name.substring(file.name.lastIndexOf('.')+1) === 'zip';
-      const isLt200M = file.size / 1024 / 1024 < 200;
+      const isLt300M = file.size / 1024 / 1024 < 300;
 
       if (!isZIP) {
         this.$message.error('上传文件只能是 ZIP 格式!');
       }
-      if (!isLt200M) {
-        this.$message.error('上传文件大小不能超过 200MB!');
+      if (!isLt300M) {
+        this.$message.error('上传文件大小不能超过 300MB!');
       }
-      return isZIP && isLt200M;
+      return isZIP && isLt300M;
     },
     // 文件上传中处理
     handleFileUploadProgress(event, file, fileList) {
