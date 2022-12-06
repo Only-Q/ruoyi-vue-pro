@@ -81,14 +81,15 @@ public class PdfOcrUtils {
                                     continue;
                                 }
                             }
+                            if (subLine.contains("工") || subLine.contains("司机") || subLine.contains("员")
+                                    || subLine.contains("操") || subLine.contains("监")) {
+                                String workStr = Convert.toStr(excelMap.getOrDefault("工种", ""));
+                                excelMap.put("工种", workStr + subLine);
+                                continue;
+                            }
                             if (checkContains(deptList, subLine)) {
                                 String deptStr = Convert.toStr(excelMap.getOrDefault("工作单位", ""));
                                 excelMap.put("工作单位", deptStr + subLine);
-                                continue;
-                            }
-                            if (subLine.contains("工") || subLine.contains("司机")) {
-                                String workStr = Convert.toStr(excelMap.getOrDefault("工种", ""));
-                                excelMap.put("工种", workStr + subLine);
                                 continue;
                             }
                             if (checkContains(badResion, subLine)) {
@@ -473,7 +474,7 @@ public class PdfOcrUtils {
                 if (xLine.matches("FVC[:：0-9]{0,}")) {
                     List<String> fields = Arrays.asList(xLine.split("[:：]"));
                     if (fields.size() == 1) {
-                        String fvcVal = pageList.get(x + 1).trim();
+                        String fvcVal = pageList.get(x + 1).replaceAll("[ 　]{0,}", "");
                         if (StringUtils.isNumeric(fvcVal)) {
                             excelMap.put(getListItemByIndex(fields, 0), fvcVal);
                         } else {

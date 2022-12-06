@@ -43,7 +43,7 @@ public class PdfReadServiceImpl implements PdfReadService {
             Pair<BigDecimal, Boolean> stopFlag = AsyncUtils.isStop(pdfFuture);
             flag = !stopFlag.getSecond();
             BigDecimal sucess = stopFlag.getFirst();
-            String process = sucess.multiply(processCal).setScale(0).toString() + "%";
+            String process = sucess.multiply(processCal).setScale(0, RoundingMode.HALF_UP).toString() + "%";
             if (!process.equals(upload.getAnalysisSpeed())) {
                 upload.setAnalysisSpeed(process);
                 uploadMapper.updateById(upload);
