@@ -24,7 +24,7 @@ public class PdfOcrUtils {
             if (firLine.equals("西山煤电(集团)有限责任公司职业病防治所")) {
                 String nextTitle = null;
                 for (int j = 2; j < pageList.size(); j++) {
-                    String line = pageList.get(j).replaceAll("[一二三四五六七八九十 　]*", "")
+                    String line = pageList.get(j).replaceAll("[一二三四五六七八九十 　{}]*", "")
                             .replaceAll("[(（)）]+", "");
                     if (line.contains(":") || line.contains("：")) {
                         List<String> lineSplit = Arrays.asList(line.split("[:：]"));

@@ -20,7 +20,7 @@ public class AsyncUtils {
             if (!future.isCancelled() && !future.isDone()) {
                 flag = false;
             } else {
-                success.add(BigDecimal.ONE);
+                success = success.add(BigDecimal.ONE);
             }
         }
         return Pair.of(success, flag);
