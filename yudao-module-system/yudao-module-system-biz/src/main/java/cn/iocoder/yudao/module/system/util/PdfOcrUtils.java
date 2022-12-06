@@ -8,6 +8,8 @@ import org.springframework.util.ResourceUtils;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PdfOcrUtils {
 
@@ -70,17 +72,21 @@ public class PdfOcrUtils {
                                 i = x;
                                 break;
                             }
-                            if (subLine.matches("[0-9-至今]*")) {
-                                String timeStr = Convert.toStr(excelMap.getOrDefault("起止时间", ""));
-                                excelMap.put("起止时间", timeStr + subLine);
-                                continue;
+                            String timeStr = findInStr("[0-9-至今]*", subLine);
+                            if (StringUtils.isNotBlank(timeStr)) {
+                                String timeSubStr = Convert.toStr(excelMap.getOrDefault("起止时间", ""));
+                                excelMap.put("起止时间", timeSubStr + timeStr);
+                                subLine = subLine.replace(timeStr, "");
+                                if (StringUtils.isBlank(subLine)) {
+                                    continue;
+                                }
                             }
                             if (checkContains(deptList, subLine)) {
                                 String deptStr = Convert.toStr(excelMap.getOrDefault("工作单位", ""));
                                 excelMap.put("工作单位", deptStr + subLine);
                                 continue;
                             }
-                            if (subLine.contains("工")) {
+                            if (subLine.contains("工") || subLine.contains("司机")) {
                                 String workStr = Convert.toStr(excelMap.getOrDefault("工种", ""));
                                 excelMap.put("工种", workStr + subLine);
                                 continue;
@@ -209,6 +215,16 @@ public class PdfOcrUtils {
             }
         }
         return excelMap;
+    }
+
+    private static String findInStr(String regex, String line) {
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(line);
+        StringBuilder sb = new StringBuilder();
+        while (matcher.find()) {
+            sb.append(matcher.group());
+        }
+        return sb.toString();
     }
 
     private static List<String> splitString(String str) {
