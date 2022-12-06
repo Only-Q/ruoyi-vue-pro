@@ -9,6 +9,7 @@ import cn.iocoder.yudao.module.system.util.AsyncUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
@@ -32,21 +33,23 @@ public class PdfReadServiceImpl implements PdfReadService {
         StopWatch stopWatch = new StopWatch("解析pdf");
         stopWatch.start("开始解析");
         List<Future<Object>> pdfFuture = new ArrayList<>();
+        BigDecimal processCal = new BigDecimal(100).divide(new BigDecimal(pdfPaths.size()), 4, RoundingMode.HALF_UP);
         for (String pdfPath : pdfPaths) {
             Future<Object> futureRes = pdfReadExecutor.readPdf(pdfPath);
             pdfFuture.add(futureRes);
         }
-        do{
-            Map<String, Integer> stopMap = AsyncUtils.isStop(pdfFuture);
-            if(stopMap.get("flag") == 0){
-                int sucess = stopMap.get("sucess");
-                upload.setAnalysisSpeed(new BigDecimal(sucess).divide(new BigDecimal(pdfPaths.size()),2, RoundingMode.HALF_UP).multiply(new BigDecimal("100")).toString() + "%");
+        boolean flag = true;
+        do {
+            Pair<BigDecimal, Boolean> stopFlag = AsyncUtils.isStop(pdfFuture);
+            flag = !stopFlag.getSecond();
+            BigDecimal sucess = stopFlag.getFirst();
+            String process = sucess.multiply(processCal).setScale(0).toString() + "%";
+            if (!process.equals(upload.getAnalysisSpeed())) {
+                upload.setAnalysisSpeed(process);
                 uploadMapper.updateById(upload);
-                Thread.sleep(10000);
-            }else {
-                break;
             }
-        }while (true);
+            Thread.sleep(10000);
+        } while (flag);
         List<LinkedHashMap<String, Object>> pdfMapFuture = new ArrayList<>();
         StringBuffer futureResStr = new StringBuffer();
         for (Future<Object> future : pdfFuture) {
