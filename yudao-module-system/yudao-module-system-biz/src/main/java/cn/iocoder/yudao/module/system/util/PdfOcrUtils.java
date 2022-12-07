@@ -24,7 +24,7 @@ public class PdfOcrUtils {
             if (firLine.equals("西山煤电(集团)有限责任公司职业病防治所")) {
                 String nextTitle = null;
                 for (int j = 2; j < pageList.size(); j++) {
-                    String line = pageList.get(j).replaceAll("[一二三四五六七八九十 　{}]*", "")
+                    String line = pageList.get(j).replaceAll("[ 　{}]*", "")
                             .replaceAll("[(（)）]+", "");
                     if (line.contains(":") || line.contains("：")) {
                         List<String> lineSplit = Arrays.asList(line.split("[:：]"));
@@ -115,16 +115,16 @@ public class PdfOcrUtils {
                 drinkHis.add("吸烟状况");
                 drinkHis.add("饮酒状况");
                 //子field顺序
-                List<String> tabFieldMap = Arrays.asList("-般检查", "般检查", "一般检查",  "血压", "内科检查 (职)",
+                List<String> tabFieldMap = Arrays.asList("-般检查", "般检查", "一般检查", "血压", "内科检查 (职)",
                         "内科检查（职）", "内科检查(职)", "神经科检查（职）", "神经科检查 (职)", "神经科检查(职)", "外科",
                         "耳鼻喉科检查(职)", "耳鼻喉科检查（职）", "耳鼻喉科检查 (职)", "胸片后前位", "十二导心电分析", "肺功能检查",
-                        "纯音听阈测试");
+                        "纯音听阈测试", "碳14呼气试验");
 
                 List<String> unitTabFields = Arrays.asList("肝功九项", "肝功项", "尿常规", "血细胞分析",
-                        "肾功能", "血脂四项", "血脂项", "空腹血糖");
+                        "肾功能", "血脂四项", "血脂项", "空腹血糖", "血流变", "血沉", "心血管风险因子", "甲功七项", "肿瘤五项");
                 List<String> ignoreField = getIgnoreArray(name,tjCode);
                 for (int i = 0; i < pageList.size(); i++) {
-                    String line = pageList.get(i).replaceAll("[、：一二三四五六七八九十 　]*[:：]*", "")
+                    String line = pageList.get(i).replaceAll("[、： 　]*[:：]*", "")
                             .replaceAll("[(（]+", "(").replaceAll("[)）]+", ")");
                     if (checkIsIgnore(ignoreField, line)) {
                         continue;
@@ -182,8 +182,35 @@ public class PdfOcrUtils {
                     if (checkContains(unitTabFields, line)) {
                         ignoreField.addAll(tabFieldMap);
                         LinkedHashMap<String, Map<String, String>> map = new LinkedHashMap<>();
-                        i = unitTabFieldProcess(i + 1, pageList, ignoreField, map);
+                        i = unitTabFieldProcess(line, i + 1, pageList, ignoreField, map);
                         excelMap.put(line, map);
+                        continue;
+                    }
+                    if (line.equals("糖化血红蛋白")) {
+                        List<String> checkRes = new ArrayList<>();
+                        for (int x = i; x < pageList.size(); x++) {
+                            String subLine = pageList.get(x).replaceAll("[、： 　]*[:：]*", "")
+                                    .replaceAll("[(（]+", "(").replaceAll("[)）]+", ")");
+                            if (checkIsIgnore(ignoreField, subLine)) {
+                                continue;
+                            }
+                            if (subLine.matches("[+-≤≥]?[0-9]+(\\.[0-9]+)?[个↑+↓]?")) {
+                                checkRes.add(subLine.replaceAll("[个]", "↑"));
+                                continue;
+                            }
+                            if (subLine.matches("^[×a-zA-Z0-9\\^.-]{0,}[/% -]{0,}[0-9a-zA-Z\\^.-]{0,}$|一")) {
+                                continue;
+                            }
+                            if (subLine.contains("本次检查者")) {
+                                Map<String, String> lineMap = new HashMap<>();
+                                lineMap.put("检查结果", getListItemByIndex(checkRes, 0));
+                                lineMap.put("上次检查结果", getListItemByIndex(checkRes, 1));
+                                excelMap.put("糖化血红蛋白", lineMap);
+                                i = x;
+                                break;
+                            }
+                            i = x;
+                        }
                         continue;
                     }
                     if (line.contains("DR检查报告单")) {
@@ -406,7 +433,7 @@ public class PdfOcrUtils {
         return i;
     }
 
-    private static int unitTabFieldProcess(Integer i, List<String> pageList, List<String> ignoreFields, LinkedHashMap<String, Map<String, String>> itemMap) {
+    private static int unitTabFieldProcess(String tabField, Integer i, List<String> pageList, List<String> ignoreFields, LinkedHashMap<String, Map<String, String>> itemMap) {
         String lastLine = null;
         List<String> checkRes = new ArrayList<>();
         for (int x = i; x < pageList.size(); x++) {
@@ -415,13 +442,27 @@ public class PdfOcrUtils {
             if (checkIsIgnore(ignoreFields, line)) {
                 continue;
             }
-            if (line.matches("[+-≤≥]?[0-9]+(\\.[0-9]+)?[个↑+↓]?")) {
-                checkRes.add(line.replaceAll("[个]", "↑"));
+            if (tabField.contains("甲功七项") || tabField.contains("肿瘤五项")) {
+                if (line.matches("[0-9.]{0,}\\-[0-9.]{0,}|[A-Za-z]{0,}/[A-Za-z]{0,}")) {
+                    continue;
+                }
+                if (line.matches("[<>]{1}[0-9.]{0,}")) {
+                    String nextLine = pageList.get(x + 1);
+                    if (nextLine.matches("[A-Za-z]{0,}/[A-Za-z]{0,}")) {
+                        continue;
+                    }
+                }
+                if (line.matches("[\\+\\-≤≥<>]?[0-9]+(\\.[0-9]+)?[个↑+↓]?")) {
+                    checkRes.add(line.replaceAll("[个]", "↑"));
+                    continue;
+                }
+            } else if (line.matches("^[×a-zA-Z0-9\\^.-]{0,}[/% -]{0,}[0-9a-zA-Z\\^.-]{0,}$|一")) {
+                if (line.matches("[\\+\\-≤≥<>]?[0-9]+(\\.[0-9]+)?[个↑+↓]?")) {
+                    checkRes.add(line.replaceAll("[个]", "↑"));
+                }
                 continue;
             }
-            if (line.matches("^[×a-zA-Z0-9\\^.-]{0,}[/% -]{0,}[0-9a-zA-Z.-]{0,}$|一")) {
-                continue;
-            }
+
             if (line.contains("本次检查者")) {
                 Map<String, String> lineMap = new HashMap<>();
                 lineMap.put("检查结果", getListItemByIndex(checkRes, 0));
@@ -471,6 +512,9 @@ public class PdfOcrUtils {
                 if (checkIsIgnore(ignoreFields, xLine)) {
                     continue;
                 }
+                if (xLine.contains("结论") || xLine.contains("检查者")) {
+                    break;
+                }
                 if (xLine.matches("FVC[:：0-9]{0,}")) {
                     List<String> fields = Arrays.asList(xLine.split("[:：]"));
                     if (fields.size() == 1) {
@@ -487,9 +531,14 @@ public class PdfOcrUtils {
                         excelMap.put(getListItemByIndex(fields, 0), getListItemByIndex(fields, 1));
                     }
                     break;
+                } else if (xLine.matches("FVC[:：0-9]{0,}[A-Za-z:：0-9/]{0,}")) {
+                    String subLine = xLine.substring(0, xLine.indexOf("FEV1"));
+                    List<String> fields = Arrays.asList(subLine.split("[:：]"));
+                    excelMap.put(getListItemByIndex(fields, 0), getListItemByIndex(fields, 1));
+                    break;
                 }
             }
-        } else if (tabField.equals("胸片后前位") || tabField.equals("十二导心电分析")) {
+        } else if (tabField.equals("胸片后前位") || tabField.equals("十二导心电分析") || tabField.equals("碳14呼气试验")) {
             for (int x = i; x < pageList.size(); x++) {
                 String xLine = pageList.get(x);
                 if (checkIsIgnore(ignoreFields, xLine)) {
