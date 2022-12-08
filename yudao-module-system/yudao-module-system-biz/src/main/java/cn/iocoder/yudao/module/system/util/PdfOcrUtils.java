@@ -443,7 +443,7 @@ public class PdfOcrUtils {
                 continue;
             }
             if (tabField.contains("甲功七项") || tabField.contains("肿瘤五项")) {
-                if (line.matches("[0-9.]{0,}\\-[0-9.]{0,}|[A-Za-z]{0,}/[A-Za-z]{0,}")) {
+                if (line.matches("[0-9.]{0,}\\-[0-9.]{0,}|[A-Za-z0-9]{0,}/[A-Za-z0-9]{0,}")) {
                     continue;
                 }
                 if (line.matches("[<>]{1}[0-9.]{0,}")) {
@@ -456,7 +456,7 @@ public class PdfOcrUtils {
                     checkRes.add(line.replaceAll("[个]", "↑"));
                     continue;
                 }
-            } else if (line.matches("^[×a-zA-Z0-9\\^.-]{0,}[/% -]{0,}[0-9a-zA-Z\\^.-]{0,}$|一")) {
+            } else if (line.matches("^[×a-zA-Z0-9\\^.-]{0,}[/% -]{0,}[0-9a-zA-Z\\^.-]{0,}$|一|[\\+\\-≤≥<>]?[0-9]+(\\.[0-9]+)?[个↑+↓]?|[\\+\\-≤≥<>]{0,}")) {
                 if (line.matches("[\\+\\-≤≥<>]?[0-9]+(\\.[0-9]+)?[个↑+↓]?")) {
                     checkRes.add(line.replaceAll("[个]", "↑"));
                 }

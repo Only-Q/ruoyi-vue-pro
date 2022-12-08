@@ -38,10 +38,8 @@ public class PdfReadServiceImpl implements PdfReadService {
             Future<Object> futureRes = pdfReadExecutor.readPdf(pdfPath);
             pdfFuture.add(futureRes);
         }
-        boolean flag = true;
-        do {
-            Pair<BigDecimal, Boolean> stopFlag = AsyncUtils.isStop(pdfFuture);
-            flag = !stopFlag.getSecond();
+        Pair<BigDecimal, Boolean> stopFlag = null;
+        while (!((stopFlag = AsyncUtils.isStop(pdfFuture)).getSecond())) {
             BigDecimal sucess = stopFlag.getFirst();
             String process = sucess.multiply(processCal).setScale(0, RoundingMode.HALF_UP).toString() + "%";
             if (!process.equals(upload.getAnalysisSpeed())) {
@@ -49,7 +47,7 @@ public class PdfReadServiceImpl implements PdfReadService {
                 uploadMapper.updateById(upload);
             }
             Thread.sleep(10000);
-        } while (flag);
+        }
         List<LinkedHashMap<String, Object>> pdfMapFuture = new ArrayList<>();
         StringBuffer futureResStr = new StringBuffer();
         for (Future<Object> future : pdfFuture) {
